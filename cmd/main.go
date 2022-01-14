@@ -6,9 +6,8 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/labstack/gommon/log"
 	"time"
-	"whattofarm/internal/db/dbclient"
-	"whattofarm/internal/db/dbcollection"
 	"whattofarm/internal/db/dbservise"
+	"whattofarm/internal/handlers/getdata"
 	"whattofarm/internal/handlers/update"
 )
 
@@ -39,24 +38,23 @@ func main() {
 	e.Logger.SetLevel(log.DEBUG)
 	logger := e.Logger
 
-	client, err := dbclient.Connect(USER, PASSWORD, HOST)
+	service, err := dbservise.NewService(USER, PASSWORD, HOST, DATABASE,COLLECTION)
 	if err != nil {
-		logger.Fatalf("MongoDB client", err)
+		logger.Fatal(err)
 	}
 
-	collection, err := dbcollection.Connect(DATABASE, COLLECTION, client)
-	if err != nil {
-		logger.Fatalf("MongoDB collection", err)
-	}
-
-	service := dbservise.NewService(collection)
 	defer func() {
-		if err = service.Disconnect(10 * time.Second); err != nil {
-			logger.Errorf("MongoDB client disconnection error: ", err)
+		if err = service.Disconnect(5*time.Second); err != nil {
+			logger.Error(err)
 		}
 	}()
 
+	if err = service.GetDocumentID(); err != nil {
+		logger.Fatal(err)
+	}
+
 	e.GET("/counter.gif", update.NewHandler(service))
+	e.GET("/", getdata.NewHandler(service))
 
 	logger.Fatal(e.Start(ADDR))
 }

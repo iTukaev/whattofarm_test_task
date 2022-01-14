@@ -5,13 +5,14 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"sync"
 	"time"
+	"whattofarm/internal/db/dbclient"
 )
 
 
 type DBStruct struct {
-	ID primitive.ObjectID `bson:"_id"`
+	ID primitive.ObjectID `bson:"_id,omitempty"`
 	Total int `bson:"total"`
-	sync.Mutex
+	sync.Mutex `bson:"-"`
 	Actions map[string]*TotalCounter `bson:"actions"`
 	Countries map[string]*TotalCounter `bson:"countries"`
 }
@@ -22,15 +23,15 @@ type TotalCounter struct {
 
 func NewDBStruct() *DBStruct {
 	return &DBStruct{
-		Actions: make(map[string]*TotalCounter),
+		Total: 0,
+		Actions:   make(map[string]*TotalCounter),
 		Countries: make(map[string]*TotalCounter),
 	}
 }
 
-
 type service struct {
-	coll *mongo.Collection
-	data *DBStruct
+	client *mongo.Client
+	data   *DBStruct
 	database string
 	collection string
 }
@@ -39,11 +40,20 @@ type service struct {
 type Service interface {
 	Update(action, country string) error
 	Disconnect(timeout time.Duration) error
+	GetDocumentID() error
+	GetData() (string, error)
 }
 
-func NewService(collection *mongo.Collection) Service {
-	return &service{
-		coll: collection,
-		data: NewDBStruct(),
+func NewService(user, password, host, database, collection string) (Service, error) {
+	client, err := dbclient.Connect(user, password, host)
+	if err != nil {
+		return nil, err
 	}
+	
+	return &service{
+		client: client,
+		data:   NewDBStruct(),
+		database: database,
+		collection: collection,
+	}, nil
 }
