@@ -1,10 +1,15 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"flag"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/labstack/gommon/log"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 	"whattofarm/internal/db/dbservise"
 	"whattofarm/internal/handlers/getdata"
@@ -30,24 +35,27 @@ func init() {
 	flag.StringVar(&COLLECTION, "c", COLLECTION, "MongoDB collection name")
 }
 
-
 func main() {
 	flag.Parse()
 	e := echo.New()
 	e.Use(middleware.Logger())
 	e.Logger.SetLevel(log.DEBUG)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	go stop(cancel)
+	start(ctx, e)
+}
+
+
+// start MongoDB services and listener
+func start(ctx context.Context, e *echo.Echo) {
 	logger := e.Logger
 
 	service, err := dbservise.NewService(USER, PASSWORD, HOST, DATABASE,COLLECTION)
 	if err != nil {
 		logger.Fatal(err)
 	}
-
-	defer func() {
-		if err = service.Disconnect(5*time.Second); err != nil {
-			logger.Error(err)
-		}
-	}()
+	logger.Infof("MongoDB connected:", "host: "+ HOST, "user: "+ USER)
 
 	if err = service.GetDocumentID(); err != nil {
 		logger.Fatal(err)
@@ -56,5 +64,30 @@ func main() {
 	e.GET("/counter.gif", update.NewHandler(service))
 	e.GET("/", getdata.NewHandler(service))
 
-	logger.Fatal(e.Start(ADDR))
+	go func() {
+		logger.Fatal(e.Start(ADDR))
+	}()
+
+	<-ctx.Done()
+	time.Sleep(3*time.Second)
+	if err = service.Disconnect(5*time.Second); errors.Unwrap(err) != nil {
+		logger.Error(err)
+	} else {
+		logger.Infof("MongoDB disconnected:", "host: "+ HOST)
+	}
+
+	if err = e.Close(); err != nil {
+		logger.Errorf("Server stopped with error:", err)
+	} else {
+		logger.Infof("Server stopped:", "host: "+ HOST)
+	}
+}
+
+
+// stop application by ^C
+func stop(cancel context.CancelFunc) {
+	exitCh := make(chan os.Signal, 1)
+	signal.Notify(exitCh, os.Interrupt, syscall.SIGINT)
+	<- exitCh
+	cancel()
 }

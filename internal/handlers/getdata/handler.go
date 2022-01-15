@@ -8,26 +8,29 @@ import (
 
 
 type Handle struct {
-	groupService groupInterface
+	handleService handleInterface
 }
 
-func NewHandler(service groupInterface) func(c echo.Context) error {
+func NewHandler(service handleInterface) func(c echo.Context) error {
 	handler := &Handle {
-		groupService: service,
+		handleService: service,
 	}
 	return handler.Upload
 }
 
-type groupInterface interface {
+type handleInterface interface {
 	GetData() (string, error)
 }
 
+// Upload return MongoDB's document as a JSON string.
+// Request method should be "GET".
+// Return 500, if GetData finished with error
 func (h *Handle) Upload(c echo.Context) error {
 	if c.Request().Method != http.MethodGet {
 		return c.String(http.StatusBadRequest, "incorrect method")
 	}
 
-	result, err := h.groupService.GetData()
+	result, err := h.handleService.GetData()
 	if err != nil {
 		c.Logger().Errorf("can't get data from database", errors.Unwrap(err))
 		return c.String(http.StatusInternalServerError, "can't get data from database")

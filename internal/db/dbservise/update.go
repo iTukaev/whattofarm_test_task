@@ -7,9 +7,11 @@ import (
 	"time"
 )
 
+// Update increment total, action and country counters.
+// Return <nil>, if all OK.
+// Return error, if MongoDB document updating finish with error.
 func (s *service) Update(action, country string) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
+	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
 
 	actionsCount := "actions." + action + ".total"
 	countriesCount := "countries." + country + ".total"

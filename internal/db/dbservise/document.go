@@ -8,6 +8,11 @@ import (
 	"time"
 )
 
+// GetDocumentID writes ObjectID of MongoDB document to service.dada.ID.
+// Return <nil>, if all OK.
+// If MongoDB collection is empty, GetDocumentID create new empty document
+// and write ID to service.dada.ID.
+// If there are more than ONE documents, GetDocumentID is returned with error
 func (s *service) GetDocumentID() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()

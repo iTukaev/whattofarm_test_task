@@ -9,6 +9,7 @@ import (
 	"time"
 )
 
+// Payload is a structure for MongoDB document
 type Payload struct {
 	ID primitive.ObjectID `json:"_id"`
 	Total int `json:"total"`
@@ -16,9 +17,11 @@ type Payload struct {
 	Countries map[string]*TotalCounter `json:"countries"`
 }
 
+// GetData return MongoDB's document as a JSON string
+// and <nil> if all OK.
+// Return error, if search or marshalling are incorrect
 func (s *service) GetData() (string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
+	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
 
 	payload := &Payload{
 		Actions: make(map[string]*TotalCounter),

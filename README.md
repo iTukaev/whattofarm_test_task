@@ -1,4 +1,5 @@
 # whattofarm_test_task
+go test -v ./internal/handlers/getdata/ ./internal/handlers/update/
 
 # Написать web-приложение (Go + Mongo DB), осуществляющее подсчёт запросов счётного пикселя в формате gif.
 
