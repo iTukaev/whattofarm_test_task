@@ -13,21 +13,29 @@ type DBStruct struct {
 	ID primitive.ObjectID `bson:"_id,omitempty"`
 	Total int `bson:"total,omitempty"`
 	sync.Mutex `bson:"-"`
-	Actions map[string]*TotalCounter `bson:"actions,omitempty"`
+	Actions map[string]*SubCountries `bson:"actions,omitempty"`
+	Countries map[string]*SubActions `bson:"countries,omitempty"`
+}
+
+type SubCountries struct {
+	Total int `bson:"total,omitempty"`
 	Countries map[string]*TotalCounter `bson:"countries,omitempty"`
 }
 
-// TotalCounter is a structure for counting parameters
+type SubActions struct {
+	Total int `bson:"total,omitempty"`
+	Actions map[string]*TotalCounter `bson:"countries,omitempty"`
+}
+
 type TotalCounter struct {
-	Total int `bson:"total"`
+	Total int `bson:"total,omitempty"`
 }
 
 // NewDBStruct create new empty DBStruct
 func NewDBStruct() *DBStruct {
 	return &DBStruct{
-		Total: 0,
-		Actions:   make(map[string]*TotalCounter),
-		Countries: make(map[string]*TotalCounter),
+		Actions: make(map[string]*SubCountries),
+		Countries: make(map[string]*SubActions),
 	}
 }
 

@@ -13,8 +13,8 @@ import (
 type Payload struct {
 	ID primitive.ObjectID `json:"_id"`
 	Total int `json:"total"`
-	Actions map[string]*TotalCounter `json:"actions"`
-	Countries map[string]*TotalCounter `json:"countries"`
+	Actions map[string]*SubCountries `json:"actions"`
+	Countries map[string]*SubActions `json:"countries"`
 }
 
 // GetData return MongoDB's document as a JSON string
@@ -24,8 +24,8 @@ func (s *service) GetData() (string, error) {
 	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
 
 	payload := &Payload{
-		Actions: make(map[string]*TotalCounter),
-		Countries: make(map[string]*TotalCounter),
+		Actions: make(map[string]*SubCountries),
+		Countries: make(map[string]*SubActions),
 	}
 
 	collection := s.client.Database(s.database).Collection(s.collection)
