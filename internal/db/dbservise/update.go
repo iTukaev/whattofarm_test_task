@@ -12,14 +12,18 @@ import (
 // Return error, if MongoDB document updating finish with error.
 func (s *service) Update(action, country string) error {
 	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+	collection := s.client.Database(s.database).Collection(s.collection)
 
-	actionsCount := "actions." + action + ".total"
-	countriesCount := "countries." + country + ".total"
+	actionsCount := fmt.Sprintf("actions.%s.total", action)
+	countriesCount := fmt.Sprintf("countries.%s.total", country)
 	filter := bson.M{"_id": s.data.ID}
-	opts := bson.M{"$inc": bson.M{"total":1, actionsCount:1, countriesCount:1}}
+	opts := bson.M{"$inc": bson.M{
+		"total":1,
+		actionsCount:1,
+		countriesCount:1,
+	}}
 
-	err := s.client.Database(s.database).Collection(s.collection).
-		FindOneAndUpdate(ctx, filter, opts).Err()
+	err := collection.FindOneAndUpdate(ctx, filter, opts).Err()
 	if err != nil {
 		return fmt.Errorf("total count update error: %w", err)
 	}

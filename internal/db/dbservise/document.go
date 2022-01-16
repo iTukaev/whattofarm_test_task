@@ -8,14 +8,17 @@ import (
 	"time"
 )
 
+type InputDocument struct {
+	ID primitive.ObjectID `bson:"_id,omitempty"`
+}
+
 // GetDocumentID writes ObjectID of MongoDB document to service.dada.ID.
 // Return <nil>, if all OK.
 // If MongoDB collection is empty, GetDocumentID create new empty document
 // and write ID to service.dada.ID.
 // If there are more than ONE documents, GetDocumentID is returned with error
 func (s *service) GetDocumentID() error {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
 	collection := s.client.Database(s.database).Collection(s.collection)
 
 	count, err := collection.CountDocuments(ctx, bson.M{})
@@ -36,9 +39,11 @@ func (s *service) GetDocumentID() error {
 		return nil
 	}
 
-	if err := collection.FindOne(ctx, bson.M{}).Decode(s.data); err != nil {
+	input := &InputDocument{}
+	if err := collection.FindOne(ctx, bson.M{}).Decode(input); err != nil {
 		return fmt.Errorf("MongoDB document ID getting error: %w", err)
 	}
+	s.data.ID = input.ID
 
 	return nil
 }
