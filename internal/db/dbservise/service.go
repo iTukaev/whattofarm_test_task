@@ -11,6 +11,7 @@ import (
 // DBStruct is used as structure MongoDB document
 type DBStruct struct {
 	ID primitive.ObjectID `bson:"_id,omitempty"`
+	TimeStamp primitive.Timestamp `bson:"timestamp,omitempty"`
 	Total int `bson:"total,omitempty"`
 	sync.Mutex `bson:"-"`
 	Actions map[string]*SubCountries `bson:"actions,omitempty"`
@@ -56,6 +57,7 @@ type Service interface {
 	Disconnect(timeout time.Duration) error
 	GetDocumentID() error
 	GetData() (string, error)
+	NewBin(timestamp time.Time) error
 }
 
 // NewService return new instance of service as a Service interface

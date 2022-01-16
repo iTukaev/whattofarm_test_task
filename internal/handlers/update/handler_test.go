@@ -1,7 +1,6 @@
 package update
 
 import (
-	"fmt"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/log"
 	"github.com/stretchr/testify/assert"
@@ -20,10 +19,7 @@ type TestCases struct {
 }
 
 func (t *TestCases) Update(action, country string) error {
-	if t.findAndUpdate {
-		return nil
-	}
-	return fmt.Errorf("some error")
+	return nil
 }
 
 func TestHandle_Update(t *testing.T)  {
@@ -31,29 +27,19 @@ func TestHandle_Update(t *testing.T)  {
 		{
 			method:         http.MethodGet,
 			path:           "/counter.gif?action=view&country=ru",
-			findAndUpdate:  true,
 			expectedStatus: http.StatusOK,
 			expectedBody:   "GIF89a\x01\x00\x01\x00\x00\x00\x00!" +
 				"\xf9\x04\x01\x00\x00\x00\x01,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x01\x00",
 		},
 		{
-			method:         http.MethodGet,
-			path:           "/counter.gif?action=view&country=ru",
-			findAndUpdate:  false,
-			expectedStatus: http.StatusInternalServerError,
-			expectedBody:   "data wasn't added to database",
-		},
-		{
 			method:         http.MethodPut,
 			path:           "/counter.gif?action=view&country=ru",
-			findAndUpdate:  true,
 			expectedStatus: http.StatusBadRequest,
 			expectedBody:   "incorrect method",
 		},
 		{
 			method:         http.MethodGet,
 			path:           "/counter.gif?country=ru",
-			findAndUpdate:  false,
 			expectedStatus: http.StatusBadRequest,
 			expectedBody:   "not enough query parameters",
 		},

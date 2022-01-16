@@ -1,7 +1,6 @@
 package update
 
 import (
-	"errors"
 	"github.com/labstack/echo/v4"
 	"net/http"
 )
@@ -39,10 +38,7 @@ func (h *Handle) Update(c echo.Context) error {
 		return c.String(http.StatusBadRequest, "not enough query parameters")
 	}
 
-	if err := h.groupService.Update(action, country); err != nil {
-		c.Logger().Errorf("data wasn't added to database", errors.Unwrap(err))
-		return c.String(http.StatusInternalServerError, "data wasn't added to database")
-	}
+	_ = h.groupService.Update(action, country)
 	c.Response().Header().Set(echo.HeaderContentType, "image/gif")
 	c.Response().WriteHeader(http.StatusOK)
 	return c.File("counter.gif")
