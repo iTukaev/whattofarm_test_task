@@ -9,8 +9,8 @@ import (
 	"time"
 )
 
-// Payload is a structure for MongoDB document
-type Payload struct {
+// InputGetData is a structure for MongoDB document
+type InputGetData struct {
 	ID primitive.ObjectID `json:"_id"`
 	Total int `json:"total"`
 	Actions map[string]*SubCountries `json:"actions"`
@@ -22,19 +22,19 @@ type Payload struct {
 // Return error, if search or marshalling are incorrect
 func (s *service) GetData() (string, error) {
 	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+	collection := s.client.Database(s.database).Collection(s.collection)
 
-	payload := &Payload{
+	input := &InputGetData{
 		Actions: make(map[string]*SubCountries),
 		Countries: make(map[string]*SubActions),
 	}
 
-	collection := s.client.Database(s.database).Collection(s.collection)
-	err := collection.FindOne(ctx, bson.M{"_id":s.data.ID}).Decode(payload)
+	err := collection.FindOne(ctx, bson.M{"_id":s.data.ID}).Decode(input)
 	if err != nil {
 		return "", fmt.Errorf("MongoDB document getiing error: %w", err)
 	}
 
-	result, err := json.Marshal(payload)
+	result, err := json.Marshal(input)
 	if err != nil {
 		return "", fmt.Errorf("MongoDB document marshalling error: %w", err)
 	}
