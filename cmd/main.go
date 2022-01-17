@@ -69,7 +69,6 @@ func start(ctx context.Context, e *echo.Echo) {
 	}()
 
 	<-ctx.Done()
-	time.Sleep(3*time.Second)
 	if err = service.Disconnect(5*time.Second); errors.Unwrap(err) != nil {
 		logger.Error(err)
 	} else {

@@ -24,7 +24,7 @@ type SubCountries struct {
 
 type SubActions struct {
 	Total int `bson:"total,omitempty"`
-	Actions map[string]*TotalCounter `bson:"countries,omitempty"`
+	Actions map[string]*TotalCounter `bson:"actions,omitempty"`
 }
 
 type TotalCounter struct {
@@ -55,7 +55,7 @@ type Service interface {
 	Update(action, country string) error
 	Disconnect(timeout time.Duration) error
 	GetDocumentID() error
-	GetData() (string, error)
+	GetData() ([]byte, error)
 }
 
 // NewService return new instance of service as a Service interface
