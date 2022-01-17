@@ -25,6 +25,7 @@ func (s *service) GetData() ([]byte, error) {
 	collection := s.client.Database(s.database).Collection(s.collection)
 
 	input := &InputGetData{
+		ID: s.data.ID,
 		Actions: make(map[string]*TotalCounter),
 		Countries: make(map[string]*TotalCounter),
 	}
