@@ -13,7 +13,6 @@ type DBStruct struct {
 	//ID primitive.ObjectID `bson:"_id,omitempty"`
 	TimeStamp primitive.Timestamp `bson:"timestamp,omitempty"`
 	Total int `bson:"total,omitempty"`
-	sync.Mutex `bson:"-"`
 	Actions map[string]*SubCountries `bson:"actions,omitempty"`
 	Countries map[string]*SubActions `bson:"countries,omitempty"`
 }
@@ -25,7 +24,7 @@ type SubCountries struct {
 
 type SubActions struct {
 	Total int `bson:"total,omitempty"`
-	Actions map[string]*TotalCounter `bson:"countries,omitempty"`
+	Actions map[string]*TotalCounter `bson:"actions,omitempty"`
 }
 
 type TotalCounter struct {
@@ -45,6 +44,7 @@ func NewDBStruct(timestamp int) *DBStruct {
 
 type service struct {
 	client *mongo.Client
+	sync.Mutex
 	data   *DBStruct
 	database string
 	collection string
@@ -58,8 +58,8 @@ type service struct {
 type Service interface {
 	Update(action, country string)
 	Disconnect(timeout time.Duration) error
-	GetData() ([]byte, error)
-	NewBin(timestamp int) error
+	GetData(timeBegin, timeEnd string) ([]byte, error)
+	NewBean(timestamp int) error
 }
 
 // NewService return new instance of service as a Service interface

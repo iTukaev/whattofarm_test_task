@@ -18,8 +18,8 @@ type TestCases struct {
 	expectedBody   string
 }
 
-func (t *TestCases) Update(action, country string) error {
-	return nil
+func (t *TestCases) Update(action, country string) {
+	return
 }
 
 func TestHandle_Update(t *testing.T)  {

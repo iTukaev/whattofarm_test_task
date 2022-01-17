@@ -3,6 +3,7 @@ package update
 import (
 	"github.com/labstack/echo/v4"
 	"net/http"
+	"os"
 )
 
 
@@ -39,7 +40,10 @@ func (h *Handle) Update(c echo.Context) error {
 	}
 
 	h.groupService.Update(action, country)
-	c.Response().Header().Set(echo.HeaderContentType, "image/gif")
-	c.Response().WriteHeader(http.StatusOK)
-	return c.File("counter.gif")
+	f, err := os.Open("counter.gif")
+	if err != nil {
+		c.Logger().Warnf("response file error:", err)
+		return c.String(http.StatusInternalServerError, "response file error")
+	}
+	return c.Stream(http.StatusOK, "image/gif", f)
 }

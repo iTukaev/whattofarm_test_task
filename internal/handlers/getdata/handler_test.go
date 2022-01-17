@@ -14,40 +14,47 @@ import (
 type TestCases struct {
 	method string
 	path string
-	findAndUpdate bool
+	getCorrect bool
 	expectedStatus int
 	expectedBody   string
 }
 
-func (t *TestCases) GetData() (string, error) {
-	if t.findAndUpdate {
-		return fmt.Sprintf("method: %s, path: %s", t.method, t.path), nil
+func (t *TestCases) GetData(timeBegin, timeEnd string) ([]byte, error) {
+	if t.getCorrect {
+		return []byte(fmt.Sprintf("time: %s, time: %s", timeBegin, timeEnd)), nil
 	}
-	return "", fmt.Errorf("some error")
+	return nil, fmt.Errorf("some error")
 }
 
 func TestHandle_Upload(t *testing.T)  {
 	var testCases = []TestCases{
 		{
 			method:         http.MethodGet,
-			path:           "/",
-			findAndUpdate:  true,
+			path:           "/?time_begin=2022-01-17_11_%2b05&time_end=2022-01-17_14_%2b05",
+			getCorrect:  true,
 			expectedStatus: http.StatusOK,
-			expectedBody:   "method: GET, path: /",
+			expectedBody:   "time: 2022-01-17_11_+05, time: 2022-01-17_14_+05",
 		},
 		{
 			method:         http.MethodGet,
-			path:           "/",
-			findAndUpdate:  false,
+			path:           "/?time_begin=2022-01-17_11_%2b05&time_end=2022-01-17_14_%2b05",
+			getCorrect:  false,
 			expectedStatus: http.StatusInternalServerError,
 			expectedBody:   "can't get data from database",
 		},
 		{
 			method:         http.MethodPut,
-			path:           "/",
-			findAndUpdate:  true,
+			path:           "/?time_begin=2022-01-17_11_%2b05&time_end=2022-01-17_14_%2b05",
+			getCorrect:  true,
 			expectedStatus: http.StatusBadRequest,
 			expectedBody:   "incorrect method",
+		},
+		{
+			method:         http.MethodGet,
+			path:           "/?time_begin=2022-01-17_11_%2b05",
+			getCorrect:  true,
+			expectedStatus: http.StatusBadRequest,
+			expectedBody:   "not enough query parameters",
 		},
 	}
 

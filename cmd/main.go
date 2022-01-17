@@ -41,7 +41,7 @@ func main() {
 	flag.Parse()
 	e := echo.New()
 	e.Use(middleware.Logger())
-	e.Logger.SetLevel(log.DEBUG)
+	e.Logger.SetLevel(log.INFO)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	go stop(cancel)
@@ -57,13 +57,7 @@ func start(ctx context.Context, e *echo.Echo) {
 	if err != nil {
 		logger.Fatal(err)
 	}
-	defer func() {
-		if err = service.Disconnect(5*time.Second); errors.Unwrap(err) != nil {
-			logger.Error(err)
-		} else {
-			logger.Infof("MongoDB disconnected:", "host: "+ HOST)
-		}
-	}()
+
 	logger.Infof("MongoDB connected:", "host: "+ HOST, "user: "+ USER)
 
 	e.GET("/counter.gif", update.NewHandler(service))
@@ -75,7 +69,7 @@ func start(ctx context.Context, e *echo.Echo) {
 
 	c := cron.New()
 	//_, err = c.AddFunc("@hourly", func() {
-	//	if err := service.NewBin(timeHours()); err != nil {
+	//	if err := service.NewBean(timeHours()); err != nil {
 	//		logger.Error(err)
 	//	}
 	//})
@@ -83,7 +77,7 @@ func start(ctx context.Context, e *echo.Echo) {
 	//	logger.Fatalf("Cron AddFunc error:", err)
 	//}
 	_, err = c.AddFunc("*/1 * * * *", func() {
-		if err := service.NewBin(timeHours()); err != nil {
+		if err := service.NewBean(timeHours()); err != nil {
 			logger.Error(err)
 		}
 	})
@@ -94,19 +88,29 @@ func start(ctx context.Context, e *echo.Echo) {
 
 	<-ctx.Done()
 	c.Stop()
-	if err = e.Close(); err != nil {
-		logger.Errorf("Server stopped with error:", err)
-	} else {
-		logger.Infof("Server stopped:", "host: "+ HOST)
-	}
 
+	// write last data bean to MongoDB
 	for i := 0; i < 3; i++ {
-		if err := service.NewBin(timeHours()); err != nil {
+		if err := service.NewBean(timeHours()); err != nil {
 			logger.Error(err)
 			time.Sleep(3*time.Second)
 			continue
 		}
-		return
+		break
+	}
+
+	// disconnect MongoDB's client
+	if err = service.Disconnect(5*time.Second); errors.Unwrap(err) != nil {
+		logger.Error(err)
+	} else {
+		logger.Infof("MongoDB disconnected:", "host: "+ HOST)
+	}
+
+	// stop listener
+	if err = e.Close(); err != nil {
+		logger.Errorf("Server stopped with error:", err)
+	} else {
+		logger.Infof("Server stopped:", "host: "+ HOST)
 	}
 }
 
