@@ -19,7 +19,7 @@ func NewHandler(service groupInterface) func(c echo.Context) error {
 
 
 type groupInterface interface {
-	Update(action, country string) error
+	Update(action, country string)
 }
 
 // Update increment total, action and country counters.
@@ -38,7 +38,7 @@ func (h *Handle) Update(c echo.Context) error {
 		return c.String(http.StatusBadRequest, "not enough query parameters")
 	}
 
-	_ = h.groupService.Update(action, country)
+	h.groupService.Update(action, country)
 	c.Response().Header().Set(echo.HeaderContentType, "image/gif")
 	c.Response().WriteHeader(http.StatusOK)
 	return c.File("counter.gif")

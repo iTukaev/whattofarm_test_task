@@ -4,9 +4,11 @@ import (
 	"context"
 	"errors"
 	"flag"
+	"fmt"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/labstack/gommon/log"
+	"github.com/robfig/cron/v3"
 	"os"
 	"os/signal"
 	"syscall"
@@ -51,15 +53,18 @@ func main() {
 func start(ctx context.Context, e *echo.Echo) {
 	logger := e.Logger
 
-	service, err := dbservise.NewService(USER, PASSWORD, HOST, DATABASE,COLLECTION)
+	service, err := dbservise.NewService(USER, PASSWORD, HOST, DATABASE, COLLECTION, timeHours())
 	if err != nil {
 		logger.Fatal(err)
 	}
+	defer func() {
+		if err = service.Disconnect(5*time.Second); errors.Unwrap(err) != nil {
+			logger.Error(err)
+		} else {
+			logger.Infof("MongoDB disconnected:", "host: "+ HOST)
+		}
+	}()
 	logger.Infof("MongoDB connected:", "host: "+ HOST, "user: "+ USER)
-
-	if err = service.GetDocumentID(); err != nil {
-		logger.Fatal(err)
-	}
 
 	e.GET("/counter.gif", update.NewHandler(service))
 	e.GET("/", getdata.NewHandler(service))
@@ -68,18 +73,40 @@ func start(ctx context.Context, e *echo.Echo) {
 		logger.Fatal(e.Start(ADDR))
 	}()
 
-	<-ctx.Done()
-	time.Sleep(3*time.Second)
-	if err = service.Disconnect(5*time.Second); errors.Unwrap(err) != nil {
-		logger.Error(err)
-	} else {
-		logger.Infof("MongoDB disconnected:", "host: "+ HOST)
+	c := cron.New()
+	//_, err = c.AddFunc("@hourly", func() {
+	//	if err := service.NewBin(timeHours()); err != nil {
+	//		logger.Error(err)
+	//	}
+	//})
+	//if err != nil {
+	//	logger.Fatalf("Cron AddFunc error:", err)
+	//}
+	_, err = c.AddFunc("*/1 * * * *", func() {
+		if err := service.NewBin(timeHours()); err != nil {
+			logger.Error(err)
+		}
+	})
+	if err != nil {
+		fmt.Println("cron error")
 	}
+	c.Start()
 
+	<-ctx.Done()
+	c.Stop()
 	if err = e.Close(); err != nil {
 		logger.Errorf("Server stopped with error:", err)
 	} else {
 		logger.Infof("Server stopped:", "host: "+ HOST)
+	}
+
+	for i := 0; i < 3; i++ {
+		if err := service.NewBin(timeHours()); err != nil {
+			logger.Error(err)
+			time.Sleep(3*time.Second)
+			continue
+		}
+		return
 	}
 }
 
@@ -90,4 +117,10 @@ func stop(cancel context.CancelFunc) {
 	signal.Notify(exitCh, os.Interrupt, syscall.SIGINT)
 	<- exitCh
 	cancel()
+}
+
+// timeHours resets minutes and seconds and returns integer time in Unix format
+func timeHours() int {
+	timeNow := time.Now()
+	return int(timeNow.UTC().Unix()) - timeNow.Minute() * 60 - timeNow.Second()
 }
