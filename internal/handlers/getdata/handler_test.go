@@ -19,11 +19,11 @@ type TestCases struct {
 	expectedBody   string
 }
 
-func (t *TestCases) GetData() (string, error) {
+func (t *TestCases) GetData() ([]byte, error) {
 	if t.findAndUpdate {
-		return fmt.Sprintf("method: %s, path: %s", t.method, t.path), nil
+		return []byte(fmt.Sprintf("method: %s, path: %s", t.method, t.path)), nil
 	}
-	return "", fmt.Errorf("some error")
+	return nil, fmt.Errorf("some error")
 }
 
 func TestHandle_Upload(t *testing.T)  {
