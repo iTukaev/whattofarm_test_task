@@ -20,7 +20,7 @@ type InputGetData struct {
 // GetData return MongoDB's document as a JSON string
 // and <nil> if all OK.
 // Return error, if search or marshalling are incorrect
-func (s *service) GetData() (string, error) {
+func (s *service) GetData() ([]byte, error) {
 	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
 	collection := s.client.Database(s.database).Collection(s.collection)
 
@@ -31,13 +31,13 @@ func (s *service) GetData() (string, error) {
 
 	err := collection.FindOne(ctx, bson.M{"_id":s.data.ID}).Decode(input)
 	if err != nil {
-		return "", fmt.Errorf("MongoDB document getiing error: %w", err)
+		return nil, fmt.Errorf("MongoDB document getiing error: %w", err)
 	}
 
 	result, err := json.Marshal(input)
 	if err != nil {
-		return "", fmt.Errorf("MongoDB document marshalling error: %w", err)
+		return nil, fmt.Errorf("MongoDB document marshalling error: %w", err)
 	}
 
-	return string(result), nil
+	return result, nil
 }

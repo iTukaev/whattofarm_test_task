@@ -19,7 +19,7 @@ func NewHandler(service handleInterface) func(c echo.Context) error {
 }
 
 type handleInterface interface {
-	GetData() (string, error)
+	GetData() ([]byte, error)
 }
 
 // Upload return MongoDB's document as a JSON string.
@@ -36,5 +36,5 @@ func (h *Handle) Upload(c echo.Context) error {
 		return c.String(http.StatusInternalServerError, "can't get data from database")
 	}
 
-	return c.String(http.StatusOK, result)
+	return c.Blob(http.StatusOK, echo.MIMEApplicationJSON, result)
 }

@@ -47,7 +47,7 @@ type Service interface {
 	Update(action, country string) error
 	Disconnect(timeout time.Duration) error
 	GetDocumentID() error
-	GetData() (string, error)
+	GetData() ([]byte, error)
 }
 
 // NewService return new instance of service as a Service interface

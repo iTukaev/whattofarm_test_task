@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/labstack/echo/v4"
 	"net/http"
+	"os"
 )
 
 
@@ -43,7 +44,11 @@ func (h *Handle) Update(c echo.Context) error {
 		c.Logger().Errorf("data wasn't added to database", errors.Unwrap(err))
 		return c.String(http.StatusInternalServerError, "data wasn't added to database")
 	}
-	c.Response().Header().Set(echo.HeaderContentType, "image/gif")
-	c.Response().WriteHeader(http.StatusOK)
-	return c.File("counter.gif")
+
+	f, err := os.Open("counter.gif")
+	if err != nil {
+		c.Logger().Warnf("os.Open response file error:", err)
+		return c.String(http.StatusInternalServerError, "response file error")
+	}
+	return c.Stream(http.StatusOK, "image/gif", f)
 }
