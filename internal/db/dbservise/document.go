@@ -12,13 +12,15 @@ type InputDocument struct {
 	ID primitive.ObjectID `bson:"_id,omitempty"`
 }
 
-// GetDocumentID writes ObjectID of MongoDB document to service.dada.ID.
+// GetDocumentID writes ObjectID of MongoDB document to Service.dada.ID.
 // Return <nil>, if all OK.
 // If MongoDB collection is empty, GetDocumentID create new empty document
-// and write ID to service.dada.ID.
+// and write ID to Service.dada.ID.
 // If there are more than ONE documents, GetDocumentID is returned with error
-func (s *service) GetDocumentID() error {
-	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+func (s *Service) GetDocumentID() error {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
 	collection := s.client.Database(s.database).Collection(s.collection)
 
 	count, err := collection.CountDocuments(ctx, bson.M{})

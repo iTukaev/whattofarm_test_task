@@ -61,7 +61,7 @@ func TestHandle_Update(t *testing.T)  {
 
 	e := echo.New()
 	e.Logger.SetLevel(log.OFF)
-	for i, _ := range testCases {
+	for i := range testCases {
 		req := httptest.NewRequest(testCases[i].method, testCases[i].path, nil)
 		rec := httptest.NewRecorder()
 		c := e.NewContext(req, rec)

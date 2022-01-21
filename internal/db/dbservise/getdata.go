@@ -20,8 +20,10 @@ type InputGetData struct {
 // GetData return MongoDB's document as a JSON string
 // and <nil> if all OK.
 // Return error, if search or marshalling are incorrect
-func (s *service) GetData() ([]byte, error) {
-	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+func (s *Service) GetData() ([]byte, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
 	collection := s.client.Database(s.database).Collection(s.collection)
 
 	input := &InputGetData{

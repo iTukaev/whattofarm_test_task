@@ -7,7 +7,7 @@ import (
 )
 
 // Disconnect client from MongoDB
-func (s *service) Disconnect(timeout time.Duration) error {
+func (s *Service) Disconnect(timeout time.Duration) error {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 	return fmt.Errorf("MongoDB client disconnection error: %w", s.client.Disconnect(ctx))

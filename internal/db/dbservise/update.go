@@ -10,8 +10,10 @@ import (
 // Update increment total, action and country counters.
 // Return <nil>, if all OK.
 // Return error, if MongoDB document updating finish with error.
-func (s *service) Update(action, country string) error {
-	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+func (s *Service) Update(action, country string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
 	collection := s.client.Database(s.database).Collection(s.collection)
 
 	actionsCount := fmt.Sprintf("actions.%s.total", action)
