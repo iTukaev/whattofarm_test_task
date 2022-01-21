@@ -9,18 +9,18 @@ import (
 
 
 type Handle struct {
-	groupService groupInterface
+	handleService handleInterface
 }
 
-func NewHandler(service groupInterface) func(c echo.Context) error {
+func NewHandler(service handleInterface) func(c echo.Context) error {
 	handler := &Handle {
-		groupService: service,
+		handleService: service,
 	}
 	return handler.Update
 }
 
 
-type groupInterface interface {
+type handleInterface interface {
 	Update(action, country string) error
 }
 
@@ -40,7 +40,7 @@ func (h *Handle) Update(c echo.Context) error {
 		return c.String(http.StatusBadRequest, "not enough query parameters")
 	}
 
-	if err := h.groupService.Update(action, country); err != nil {
+	if err := h.handleService.Update(action, country); err != nil {
 		c.Logger().Errorf("data wasn't added to database", errors.Unwrap(err))
 		return c.String(http.StatusInternalServerError, "data wasn't added to database")
 	}
