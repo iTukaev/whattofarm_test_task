@@ -18,16 +18,13 @@ type Payload struct {
 	Countries map[string]*SubActions `json:"countries"`
 }
 
-type Timestamp struct {
-	timestamp primitive.Timestamp `bson:"timestamp"`
-}
-
 // GetData return MongoDB's document as a JSON string
 // and <nil> if all OK.
 // Return error, if search or marshalling are incorrect
-func (s *service) GetData(timeBegin, timeEnd string) ([]byte, error) {
+func (s *Service) GetData(timeBegin, timeEnd string) ([]byte, error) {
 	collection := s.client.Database(s.database).Collection(s.collection)
-	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
 
 	timeMin, err := time.Parse("2006-01-02_15_-07", timeBegin)
 	if err != nil {

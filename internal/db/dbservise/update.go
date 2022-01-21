@@ -3,7 +3,7 @@ package dbservise
 // Update increment total, action and country counters.
 // Return <nil>, if all OK.
 // Return error, if MongoDB document updating finish with error.
-func (s *service) Update(action, country string) {
+func (s *Service) Update(action, country string) {
 	s.Lock()
 	s.data.Total++
 	if _, ok := s.data.Actions[action]; !ok {
